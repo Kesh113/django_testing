@@ -9,6 +9,9 @@ from django.urls import reverse
 from news.models import Comment, News
 
 
+TEXT = 'Текст комментария'
+
+
 @pytest.fixture
 def author(django_user_model):
     return django_user_model.objects.create(username='Автор')
@@ -43,31 +46,21 @@ def comment(news, author):
     return Comment.objects.create(
         news=news,
         author=author,
-        text='Текст комментария'
+        text=TEXT
     )
 
 
 @pytest.fixture
-def news_id_for_args(news):
-    return (news.id,)
-
-
-@pytest.fixture
-def comment_id_for_args(comment):
-    return (comment.id,)
-
-
-@pytest.fixture
 def news_with_different_dates(db):
-    all_news = [
+    today = datetime.today()
+    News.objects.bulk_create([
         News(
             title=f'Новость {index}',
             text='Просто текст.',
-            date=datetime.today() - timedelta(days=index)
+            date=today - timedelta(days=index)
         )
         for index in range(settings.NEWS_COUNT_ON_HOME_PAGE + 1)
-    ]
-    News.objects.bulk_create(all_news)
+    ])
 
 
 @pytest.fixture
@@ -82,25 +75,40 @@ def comments_with_different_dates(news, author):
 
 
 @pytest.fixture
-def form_data():
-    return {
-        'text': 'Текст нового комментария'
-    }
+def home():
+    return reverse('news:home')
 
 
 @pytest.fixture
-def urls_for_comment(comment_id_for_args, news_id_for_args):
-    return {
-        'edit': reverse('news:edit', args=comment_id_for_args),
-        'delete': reverse('news:delete', args=comment_id_for_args),
-        'success': reverse('news:detail', args=news_id_for_args) + '#comments'
-    }
+def detail(news):
+    return reverse('news:detail', args=(news.id,))
 
 
 @pytest.fixture
-def urls_for_news(news_id_for_args):
-    url = reverse('news:detail', args=news_id_for_args)
-    return {
-        'detail': url,
-        'success': url + '#comments'
-    }
+def edit(comment):
+    return reverse('news:edit', args=(comment.id,))
+
+
+@pytest.fixture
+def delete(comment):
+    return reverse('news:delete', args=(comment.id,))
+
+
+@pytest.fixture
+def success(detail):
+    return detail + '#comments'
+
+
+@pytest.fixture
+def login():
+    return reverse('users:login')
+
+
+@pytest.fixture
+def logout():
+    return reverse('users:logout')
+
+
+@pytest.fixture
+def signup():
+    return reverse('users:signup')
