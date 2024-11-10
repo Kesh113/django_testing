@@ -1,7 +1,9 @@
 from http import HTTPStatus
 
 from .fixtures import (TestBaseCase, ADD, DETAIL, LIST, SUCCESS, EDIT, DELETE,
-                       HOME, LOGIN, LOGOUT, SIGNUP, REDIRECT)
+                       HOME, LOGIN, LOGOUT, SIGNUP, REDIRECT_EDIT,
+                       REDIRECT_DELETE, REDIRECT_DETAIL, REDIRECT_ADD,
+                       REDIRECT_LIST, REDIRECT_SUCCESS)
 
 
 OK = HTTPStatus.OK
@@ -16,12 +18,6 @@ class TestRoutes(TestBaseCase):
             (LOGIN, self.client, OK),
             (LOGOUT, self.client, OK),
             (SIGNUP, self.client, OK),
-            (EDIT, self.client, FOUND),
-            (DELETE, self.client, FOUND),
-            (DETAIL, self.client, FOUND),
-            (ADD, self.client, FOUND),
-            (LIST, self.client, FOUND),
-            (SUCCESS, self.client, FOUND),
             (EDIT, self.author_client, OK),
             (DELETE, self.author_client, OK),
             (DETAIL, self.author_client, OK),
@@ -36,8 +32,14 @@ class TestRoutes(TestBaseCase):
             with self.subTest(url=url, user=user):
                 self.assertEqual(user.get(url).status_code,
                                  expected_status)
-                if url in (
-                    EDIT, DELETE, DETAIL, ADD, LIST, SUCCESS
-                ) and user == self.client:
-                    self.assertRedirects(self.client.get(url),
-                                         f'{REDIRECT}{url}')
+        test_data = (
+            (EDIT, REDIRECT_EDIT),
+            (DELETE, REDIRECT_DELETE),
+            (DETAIL, REDIRECT_DETAIL),
+            (ADD, REDIRECT_ADD),
+            (LIST, REDIRECT_LIST),
+            (SUCCESS, REDIRECT_SUCCESS)
+        )
+        for url, url_redirect in test_data:
+            with self.subTest(url=url, url_redirect=url_redirect):
+                self.assertRedirects(self.client.get(url), url_redirect)

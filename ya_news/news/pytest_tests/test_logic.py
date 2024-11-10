@@ -29,11 +29,11 @@ def test_user_can_create_comment(auth_user, auth_user_client, news,
     assert comment.author == auth_user
 
 
-@pytest.mark.parametrize('wrong_field_text', WRONG_DATA)
-def test_user_cant_use_wrong_data(auth_user_client, wrong_field_text, detail):
+@pytest.mark.parametrize('wrong_form_field', WRONG_DATA)
+def test_user_cant_use_wrong_data(auth_user_client, wrong_form_field, detail):
     response = auth_user_client.post(
         detail,
-        data=wrong_field_text
+        data=wrong_form_field
     )
     assertFormError(response, 'form', 'text', errors=WARNING)
     assert Comment.objects.count() == 0
@@ -47,6 +47,7 @@ def test_author_can_delete_comment(author_client, delete, success):
 def test_user_cant_delete_comment_of_another_user(auth_user_client, comment,
                                                   delete):
     assert auth_user_client.delete(delete).status_code == HTTPStatus.NOT_FOUND
+    assert comment in Comment.objects.all()
     edited_comment = Comment.objects.get(id=comment.id)
     assert edited_comment.news == comment.news
     assert edited_comment.author == comment.author

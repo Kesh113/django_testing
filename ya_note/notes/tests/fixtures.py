@@ -19,7 +19,12 @@ SIGNUP = reverse('users:signup')
 DETAIL = reverse('notes:detail', args=(NOTE_SLUG,))
 EDIT = reverse('notes:edit', args=(NOTE_SLUG,))
 DELETE = reverse('notes:delete', args=(NOTE_SLUG,))
-REDIRECT = f'{LOGIN}?next='
+REDIRECT_EDIT = f'{LOGIN}?next={EDIT}'
+REDIRECT_DELETE = f'{LOGIN}?next={DELETE}'
+REDIRECT_DETAIL = f'{LOGIN}?next={DETAIL}'
+REDIRECT_ADD = f'{LOGIN}?next={ADD}'
+REDIRECT_LIST = f'{LOGIN}?next={LIST}'
+REDIRECT_SUCCESS = f'{LOGIN}?next={SUCCESS}'
 
 
 class TestBaseCase(TestCase):
