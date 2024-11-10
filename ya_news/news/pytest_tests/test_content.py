@@ -4,14 +4,12 @@ from news.forms import CommentForm
 
 
 def test_auth_user_has_comment_form(auth_user_client, detail):
-    response = auth_user_client.get(detail)
-    assert 'form' in response.context
-    assert isinstance(response.context.get('form'), CommentForm)
+    assert isinstance(auth_user_client.get(detail).context.get('form'),
+                      CommentForm)
 
 
 def test_not_auth_user_has_not_comment_form(client, detail):
-    response = client.get(detail)
-    assert 'form' not in response.context
+    assert 'form' not in client.get(detail).context
 
 
 def test_comments_order(client, comments_with_different_dates, detail):
@@ -23,8 +21,7 @@ def test_comments_order(client, comments_with_different_dates, detail):
 
 
 def test_news_order(client, news_with_different_dates, home):
-    response = client.get(home)
-    all_dates = [news.date for news in response.context['object_list']]
+    all_dates = [news.date for news in client.get(home).context['object_list']]
     assert all_dates == sorted(all_dates, reverse=True)
 
 

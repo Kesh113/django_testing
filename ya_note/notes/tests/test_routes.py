@@ -1,11 +1,12 @@
 from http import HTTPStatus
 
 from .fixtures import (TestBaseCase, ADD, DETAIL, LIST, SUCCESS, EDIT, DELETE,
-                       HOME, LOGIN, LOGOUT, SIGNUP)
+                       HOME, LOGIN, LOGOUT, SIGNUP, REDIRECT)
 
 
 OK = HTTPStatus.OK
 NOT_FOUND = HTTPStatus.NOT_FOUND
+FOUND = HTTPStatus.FOUND
 
 
 class TestRoutes(TestBaseCase):
@@ -15,6 +16,12 @@ class TestRoutes(TestBaseCase):
             (LOGIN, self.client, OK),
             (LOGOUT, self.client, OK),
             (SIGNUP, self.client, OK),
+            (EDIT, self.client, FOUND),
+            (DELETE, self.client, FOUND),
+            (DETAIL, self.client, FOUND),
+            (ADD, self.client, FOUND),
+            (LIST, self.client, FOUND),
+            (SUCCESS, self.client, FOUND),
             (EDIT, self.author_client, OK),
             (DELETE, self.author_client, OK),
             (DETAIL, self.author_client, OK),
@@ -27,10 +34,10 @@ class TestRoutes(TestBaseCase):
         )
         for url, user, expected_status in test_data:
             with self.subTest(url=url, user=user):
-                self.assertEqual(user.get(url).status_code, expected_status)
-
-    def test_redirect_for_anonymous_client(self):
-        for url in (EDIT, DELETE, DETAIL, ADD, LIST, SUCCESS):
-            with self.subTest(url=url):
-                self.assertRedirects(self.client.get(url),
-                                     f'{LOGIN}?next={url}')
+                self.assertEqual(user.get(url).status_code,
+                                 expected_status)
+                if url in (
+                    EDIT, DELETE, DETAIL, ADD, LIST, SUCCESS
+                ) and user == self.client:
+                    self.assertRedirects(self.client.get(url),
+                                         f'{REDIRECT}{url}')

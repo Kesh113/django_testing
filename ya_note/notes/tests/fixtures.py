@@ -19,6 +19,7 @@ SIGNUP = reverse('users:signup')
 DETAIL = reverse('notes:detail', args=(NOTE_SLUG,))
 EDIT = reverse('notes:edit', args=(NOTE_SLUG,))
 DELETE = reverse('notes:delete', args=(NOTE_SLUG,))
+REDIRECT = f'{LOGIN}?next='
 
 
 class TestBaseCase(TestCase):
@@ -40,7 +41,3 @@ class TestBaseCase(TestCase):
         cls.form_data = {'title': 'Новый заголовок',
                          'text': 'Новый текст заметки',
                          'slug': 'noviy-slug'}
-
-        cls.notes = list(Note.objects.values_list())
-
-        cls.notes_count = Note.objects.count()

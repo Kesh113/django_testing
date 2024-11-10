@@ -12,11 +12,12 @@ class TestContextTemplates(TestBaseCase):
     def test_note_in_list_author(self):
         response = self.author_client.get(LIST)
         self.assertIn(self.note, response.context['object_list'])
-        note = response.context['object_list'].get(slug=self.note.slug)
-        self.assertEqual(note.title, self.note.title)
-        self.assertEqual(note.text, self.note.text)
-        self.assertEqual(note.author, self.note.author)
+        context_note = response.context['object_list'].get(id=self.note.id)
+        self.assertEqual(self.note.title, context_note.title)
+        self.assertEqual(self.note.text, context_note.text)
+        self.assertEqual(self.note.slug, context_note.slug)
+        self.assertEqual(self.note.author, context_note.author)
 
     def test_note_not_in_list_auth_user(self):
-        response = self.auth_user_client.get(LIST)
-        self.assertNotIn(self.note, response.context['object_list'])
+        self.assertNotIn(
+            self.note, self.auth_user_client.get(LIST).context['object_list'])

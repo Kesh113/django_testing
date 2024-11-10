@@ -6,6 +6,11 @@ from pytest_django.asserts import assertRedirects
 
 pytestmark = pytest.mark.django_db
 
+HOME = pytest.lazy_fixture('home')
+DETAIL = pytest.lazy_fixture('detail')
+LOGIN = pytest.lazy_fixture('login')
+LOGOUT = pytest.lazy_fixture('logout')
+SIGNUP = pytest.lazy_fixture('signup')
 EDIT = pytest.lazy_fixture('edit')
 DELETE = pytest.lazy_fixture('delete')
 
@@ -15,31 +20,28 @@ AUTHOR = pytest.lazy_fixture('author_client')
 
 OK = HTTPStatus.OK
 NOT_FOUND = HTTPStatus.NOT_FOUND
+FOUND = HTTPStatus.FOUND
 
 
 @pytest.mark.parametrize(
     'url, client_fixture, expected_status',
     (
-        (EDIT, AUTH_USER, NOT_FOUND),
         (EDIT, AUTHOR, OK),
-        (DELETE, AUTH_USER, NOT_FOUND),
         (DELETE, AUTHOR, OK),
-        (pytest.lazy_fixture('home'), ANONIMOUS, OK),
-        (pytest.lazy_fixture('detail'), ANONIMOUS, OK),
-        (pytest.lazy_fixture('login'), ANONIMOUS, OK),
-        (pytest.lazy_fixture('logout'), ANONIMOUS, OK),
-        (pytest.lazy_fixture('signup'), ANONIMOUS, OK)
+        (EDIT, AUTH_USER, NOT_FOUND),
+        (DELETE, AUTH_USER, NOT_FOUND),
+        (HOME, ANONIMOUS, OK),
+        (DETAIL, ANONIMOUS, OK),
+        (EDIT, ANONIMOUS, FOUND),
+        (DELETE, ANONIMOUS, FOUND),
+        (LOGIN, ANONIMOUS, OK),
+        (LOGOUT, ANONIMOUS, OK),
+        (SIGNUP, ANONIMOUS, OK)
     )
 )
-def test_pages_availability_for_different_users(url, client_fixture,
-                                                expected_status, ):
-    response = client_fixture.get(url)
-    assert response.status_code == expected_status
-
-
-@pytest.mark.parametrize(
-    'url',
-    (EDIT, DELETE)
-)
-def test_redirects(client, url, login):
-    assertRedirects(client.get(url), f'{login}?next={url}')
+def test_pages_availability_for_different_users(url, client_fixture, client,
+                                                expected_status, redirect,
+                                                edit, delete):
+    assert client_fixture.get(url).status_code == expected_status
+    if url in (edit, delete) and client_fixture == client:
+        assertRedirects(client_fixture.get(url), f'{redirect}{url}')
