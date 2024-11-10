@@ -112,5 +112,10 @@ def signup():
 
 
 @pytest.fixture
-def redirect(login):
-    return f'{login}?next='
+def redirect_edit(login, edit):
+    return f'{login}?next={edit}'
+
+
+@pytest.fixture
+def redirect_delete(login, delete):
+    return f'{login}?next={delete}'

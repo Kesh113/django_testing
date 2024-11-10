@@ -8,6 +8,8 @@ from news.models import Comment
 
 
 FORM_DATA = {'text': 'Текст нового комментария'}
+WRONG_DATA = (
+    {'text': f'Какой-то текст, {bad}, еще текст'} for bad in BAD_WORDS)
 
 
 def test_anonymous_user_cant_create_comment(client, detail):
@@ -27,12 +29,11 @@ def test_user_can_create_comment(auth_user, auth_user_client, news,
     assert comment.author == auth_user
 
 
-@pytest.mark.parametrize('bad_text', (
-    {'text': f'Какой-то текст, {bad}, еще текст'} for bad in BAD_WORDS))
-def test_user_cant_use_bad_words(auth_user_client, bad_text, detail):
+@pytest.mark.parametrize('wrong_field_text', WRONG_DATA)
+def test_user_cant_use_wrong_data(auth_user_client, wrong_field_text, detail):
     response = auth_user_client.post(
         detail,
-        data=bad_text
+        data=wrong_field_text
     )
     assertFormError(response, 'form', 'text', errors=WARNING)
     assert Comment.objects.count() == 0
@@ -43,25 +44,28 @@ def test_author_can_delete_comment(author_client, delete, success):
     assert Comment.objects.count() == 0
 
 
-def test_user_cant_delete_comment_of_another_user(auth_user_client, delete):
-    comments = set(Comment.objects.values_list())
+def test_user_cant_delete_comment_of_another_user(auth_user_client, comment,
+                                                  delete):
     assert auth_user_client.delete(delete).status_code == HTTPStatus.NOT_FOUND
-    assert set(Comment.objects.values_list()) == comments
+    edited_comment = Comment.objects.get(id=comment.id)
+    assert edited_comment.news == comment.news
+    assert edited_comment.author == comment.author
+    assert edited_comment.text == comment.text
 
 
 def test_author_can_edit_comment(author_client, edit, comment, success):
-    comments = set(Comment.objects.values_list())
     assertRedirects(author_client.post(edit, data=FORM_DATA), success)
-    edited_comment = set(Comment.objects.values_list()).difference(comments)
-    assert len(edited_comment) == 1
-    edited_comment = next(iter(edited_comment))
-    assert edited_comment[1] == comment.news.id
-    assert edited_comment[2] == comment.author.id
-    assert edited_comment[3] == FORM_DATA['text']
+    edited_comment = Comment.objects.get(id=comment.id)
+    assert edited_comment.news == comment.news
+    assert edited_comment.author == comment.author
+    assert edited_comment.text == FORM_DATA['text']
 
 
-def test_user_cant_edit_comment_of_another_user(auth_user_client, edit):
-    comments = set(Comment.objects.values_list())
+def test_user_cant_edit_comment_of_another_user(auth_user_client, edit,
+                                                comment):
     assert auth_user_client.post(
         edit, data=FORM_DATA).status_code == HTTPStatus.NOT_FOUND
-    assert set(Comment.objects.values_list()) == comments
+    edited_comment = Comment.objects.get(id=comment.id)
+    assert edited_comment.news == comment.news
+    assert edited_comment.author == comment.author
+    assert edited_comment.text == comment.text

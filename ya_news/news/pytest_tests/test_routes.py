@@ -13,6 +13,8 @@ LOGOUT = pytest.lazy_fixture('logout')
 SIGNUP = pytest.lazy_fixture('signup')
 EDIT = pytest.lazy_fixture('edit')
 DELETE = pytest.lazy_fixture('delete')
+REDIRECT_EDIT = pytest.lazy_fixture('redirect_edit')
+REDIRECT_DELETE = pytest.lazy_fixture('redirect_delete')
 
 ANONIMOUS = pytest.lazy_fixture('client')
 AUTH_USER = pytest.lazy_fixture('auth_user_client')
@@ -32,16 +34,22 @@ FOUND = HTTPStatus.FOUND
         (DELETE, AUTH_USER, NOT_FOUND),
         (HOME, ANONIMOUS, OK),
         (DETAIL, ANONIMOUS, OK),
-        (EDIT, ANONIMOUS, FOUND),
-        (DELETE, ANONIMOUS, FOUND),
         (LOGIN, ANONIMOUS, OK),
         (LOGOUT, ANONIMOUS, OK),
         (SIGNUP, ANONIMOUS, OK)
     )
 )
-def test_pages_availability_for_different_users(url, client_fixture, client,
-                                                expected_status, redirect,
-                                                edit, delete):
+def test_pages_availability_for_different_users(url, client_fixture,
+                                                expected_status):
     assert client_fixture.get(url).status_code == expected_status
-    if url in (edit, delete) and client_fixture == client:
-        assertRedirects(client_fixture.get(url), f'{redirect}{url}')
+
+
+@pytest.mark.parametrize(
+    'url, redirect_url',
+    (
+        (EDIT, REDIRECT_EDIT),
+        (DELETE, REDIRECT_DELETE),
+    )
+)
+def test_redirects(client, url, redirect_url):
+    assertRedirects(client.get(url), redirect_url)
