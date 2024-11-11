@@ -18,6 +18,12 @@ class TestRoutes(TestBaseCase):
             (LOGIN, self.client, OK),
             (LOGOUT, self.client, OK),
             (SIGNUP, self.client, OK),
+            (EDIT, self.client, FOUND),
+            (DELETE, self.client, FOUND),
+            (DETAIL, self.client, FOUND),
+            (ADD, self.client, FOUND),
+            (LIST, self.client, FOUND),
+            (SUCCESS, self.client, FOUND),
             (EDIT, self.author_client, OK),
             (DELETE, self.author_client, OK),
             (DETAIL, self.author_client, OK),
@@ -32,6 +38,8 @@ class TestRoutes(TestBaseCase):
             with self.subTest(url=url, user=user):
                 self.assertEqual(user.get(url).status_code,
                                  expected_status)
+
+    def test_redirect_for_anonymous_client(self):
         test_data = (
             (EDIT, REDIRECT_EDIT),
             (DELETE, REDIRECT_DELETE),
@@ -40,6 +48,6 @@ class TestRoutes(TestBaseCase):
             (LIST, REDIRECT_LIST),
             (SUCCESS, REDIRECT_SUCCESS)
         )
-        for url, url_redirect in test_data:
-            with self.subTest(url=url, url_redirect=url_redirect):
-                self.assertRedirects(self.client.get(url), url_redirect)
+        for url, redirect_url in test_data:
+            with self.subTest(url=url, redirect_url=redirect_url):
+                self.assertRedirects(self.client.get(url), redirect_url)

@@ -26,24 +26,32 @@ FOUND = HTTPStatus.FOUND
 
 
 @pytest.mark.parametrize(
-    'url, client_fixture, expected_status, redirect_url',
+    'url, client_fixture, expected_status',
     (
-        (EDIT, AUTHOR, OK, None),
-        (DELETE, AUTHOR, OK, None),
-        (EDIT, AUTH_USER, NOT_FOUND, None),
-        (DELETE, AUTH_USER, NOT_FOUND, None),
-        (HOME, ANONIMOUS, OK, None),
-        (DETAIL, ANONIMOUS, OK, None),
-        (LOGIN, ANONIMOUS, OK, None),
-        (LOGOUT, ANONIMOUS, OK, None),
-        (SIGNUP, ANONIMOUS, OK, None),
-        (EDIT, ANONIMOUS, FOUND, REDIRECT_EDIT),
-        (DELETE, ANONIMOUS, FOUND, REDIRECT_DELETE),
+        (EDIT, AUTHOR, OK),
+        (DELETE, AUTHOR, OK),
+        (EDIT, AUTH_USER, NOT_FOUND),
+        (DELETE, AUTH_USER, NOT_FOUND),
+        (HOME, ANONIMOUS, OK),
+        (DETAIL, ANONIMOUS, OK),
+        (LOGIN, ANONIMOUS, OK),
+        (LOGOUT, ANONIMOUS, OK),
+        (SIGNUP, ANONIMOUS, OK),
+        (EDIT, ANONIMOUS, FOUND),
+        (DELETE, ANONIMOUS, FOUND),
     )
 )
-def test_page_availability_and_redirects(url, client_fixture,
-                                         expected_status, redirect_url):
+def test_pages_availability(url, client_fixture, expected_status):
     response = client_fixture.get(url)
     assert response.status_code == expected_status
-    if redirect_url:
-        assertRedirects(response, redirect_url)
+
+
+@pytest.mark.parametrize(
+    'url, redirect_url',
+    (
+        (EDIT, REDIRECT_EDIT),
+        (DELETE, REDIRECT_DELETE),
+    )
+)
+def test_redirects(client, url, redirect_url):
+    assertRedirects(client.get(url), redirect_url)

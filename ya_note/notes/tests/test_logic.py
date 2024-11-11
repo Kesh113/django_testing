@@ -17,9 +17,9 @@ class TestNoteCreateEditDelete(TestBaseCase):
         notes = set(Note.objects.all())
         response = self.auth_user_client.post(ADD, data=self.form_data)
         self.assertRedirects(response, SUCCESS)
-        created_note = set(Note.objects.all()) - notes
-        self.assertEqual(len(created_note), 1)
-        created_note = created_note.pop()
+        notes = set(Note.objects.all()) - notes
+        self.assertEqual(len(notes), 1)
+        created_note = notes.pop()
         self.assertEqual(created_note.title, self.form_data['title'])
         self.assertEqual(created_note.text, self.form_data['text'])
         self.assertEqual(created_note.slug, self.form_data['slug'])
@@ -42,9 +42,9 @@ class TestNoteCreateEditDelete(TestBaseCase):
         self.form_data.pop('slug')
         response = self.auth_user_client.post(ADD, data=self.form_data)
         self.assertRedirects(response, SUCCESS)
-        created_note = set(Note.objects.all()) - notes
-        self.assertEqual(len(created_note), 1)
-        created_note = created_note.pop()
+        notes = set(Note.objects.all()) - notes
+        self.assertEqual(len(notes), 1)
+        created_note = notes.pop()
         self.assertEqual(created_note.title, self.form_data['title'])
         self.assertEqual(created_note.text, self.form_data['text'])
         self.assertEqual(created_note.slug, slugify(self.form_data['title']))
@@ -69,9 +69,19 @@ class TestNoteCreateEditDelete(TestBaseCase):
         response = self.auth_user_client.post(EDIT, data=self.form_data)
         self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
         self.assertEqual(set(Note.objects.all()), notes)
+        not_edited_note = Note.objects.get(id=self.note.id)
+        self.assertEqual(not_edited_note.title, self.note.title)
+        self.assertEqual(not_edited_note.text, self.note.text)
+        self.assertEqual(not_edited_note.slug, self.note.slug)
+        self.assertEqual(not_edited_note.author, self.note.author)
 
     def test_user_cant_delete_other_note(self):
         notes = set(Note.objects.all())
         response = self.auth_user_client.post(DELETE)
         self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
         self.assertEqual(set(Note.objects.all()), notes)
+        not_deleted_note = Note.objects.get(id=self.note.id)
+        self.assertEqual(not_deleted_note.title, self.note.title)
+        self.assertEqual(not_deleted_note.text, self.note.text)
+        self.assertEqual(not_deleted_note.slug, self.note.slug)
+        self.assertEqual(not_deleted_note.author, self.note.author)
